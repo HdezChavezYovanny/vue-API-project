@@ -23,20 +23,19 @@
 </template>
 
 <style>
-  /* --- Estilos Base --- */
 html, body {
   height: 100%;
 }
 
 body { 
   margin: 0; 
-  background: #DCDCDC; /* NEUTRO BASE (Refinado) */
+  background: #DCDCDC;
 }
 
 
 header {
-  /* Fondo del Header con gradiente para mayor vida */
-  background: linear-gradient(135deg, #2D6CDF, #2256AE); /* AZUL PRINCIPAL (Refinado) */
+
+  background: linear-gradient(135deg, #2D6CDF, #2256AE); /* AZUL PRINCIPAL */
 }
 
 
@@ -45,9 +44,8 @@ header {
   padding-top: env(safe-area-inset-top, 0);
   top: 0;                 
   z-index: 1000;
-  /* Fondo del sticky-title con gradiente para mayor vida */
   background: linear-gradient(135deg, #2D6CDF, #2256AE); 
-  box-shadow: 0 5px 8px rgba(0, 0, 0, 0.3); /* Sombra más fuerte */
+  box-shadow: 0 5px 8px rgba(0, 0, 0, 0.3);
   height: 100px;
 }
 
@@ -57,7 +55,7 @@ header h1 {
   padding: 0.5rem 0;
   text-align: center;
   font-size: 3rem;
-  text-shadow: 1px 1px 10px #F85A3E; /* NARANJA SECUNDARIO (Refinado) */
+  text-shadow: 1px 1px 10px #F85A3E; /* NARANJA SECUNDARIO */
 }
 
 nav {
@@ -68,7 +66,7 @@ nav {
   background: #5090E0; /* Un tono de azul intermedio para la barra de navegación */
 }
 
-/* --- Estilos de Enlaces (Link Styling) --- */
+/* --- Estilos de Enlaces --- */
 nav a {
   color: whitesmoke;
   text-decoration: none;

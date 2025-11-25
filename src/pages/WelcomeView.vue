@@ -35,7 +35,7 @@ p {
 
 body {
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  background-color: #DCDCDC; /* NEUTRO BASE (Refinado) */
+  background-color: #DCDCDC; /* NEUTRO BASE*/
   margin: 0;
   color: #1a1a1a;
 }
@@ -47,7 +47,7 @@ body {
 }
 
 h1, h2, h3, h4 {
-  color: #F85A3E; /* CAMBIO: NARANJA SECUNDARIO (Antes Blue) */
-  text-shadow: 1px 1px 1px #2D6CDF; /* CAMBIO: AZUL PRINCIPAL para la sombra */
+  color: #F85A3E; /* NARANJA SECUNDARIO*/
+  text-shadow: 1px 1px 1px #2D6CDF; /* AZUL PRINCIPAL para la sombra */
 }
 </style>

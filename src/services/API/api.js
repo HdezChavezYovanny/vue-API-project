@@ -33,6 +33,6 @@ export async function fetchStations() {
     });
   } catch (err) {
     console.error("fetchStations error:", err);
-    throw err; // propaga para que el componente muestre/loggee el error
+    throw err; 
   }
 }

@@ -141,7 +141,6 @@ async function fetchData() {
 }
 onMounted(fetchData)
 
-/*Computados equivalentes a usaMemo */
 
 const enriched = computed(() =>
     all.value.map(st => ({
@@ -219,7 +218,7 @@ function addToWhiteList() {
         whitelist.value.push(selectedBrand.value)
     }
 
-    // fixed: use .filter on the array
+
     blacklist.value = blacklist.value.filter(b => b !== selectedBrand.value)
 }
 
@@ -248,14 +247,7 @@ watch([sorted], () => {
 
 
 <template>
-    <!--INICIA TEMPLATE
-    =======================================================================================
-    =======================================================================================
-    =======================================================================================
-    =======================================================================================
-    =======================================================================================
-    =======================================================================================
-    -->
+ 
     <div class="container">
         <h1 style="text-align:center">Versión básica del profesor (Vue Adapted)</h1>
         
@@ -409,14 +401,11 @@ watch([sorted], () => {
 </template>
 
 <style scoped>
-/* Component-local styles only (scoped) */
-
-/* Container / page wrapper inside this component */
 .container {
   max-width: 1200px;
   margin: 0 auto;
   padding: 1.5rem;
-  background-color: transparent; /* keep global background out of this component */
+  background-color: transparent; 
 }
 
 /* Headings */
@@ -424,25 +413,21 @@ h1, h2, h3 {
   color: #111827;
   margin: 0 0 0.5rem 0;
 }
-
-/* Card / section styling (matches <div class="section">) */
 .section {
-  background-color: #ffffff;              /* visible card background */
+  background-color: #ffffff;             
   border-radius: 12px;
   padding: 1.25rem;
   box-shadow: 0 1px 2px rgba(16, 24, 40, 0.04);
   margin-bottom: 1.25rem;
-  border: 1px solid rgba(0,0,0,0.06);     /* subtle border */
+  border: 1px solid rgba(0,0,0,0.06);     
 }
 
-/* Inner heading in a section */
 .section h2 {
   font-size: 1.1rem;
   font-weight: 600;
   margin-bottom: 0.75rem;
 }
 
-/* Input/select layout */
 input[type="text"],
 input[type="number"],
 select {
@@ -482,7 +467,6 @@ button:disabled {
   cursor: not-allowed;
 }
 
-/* semantic button classes used in template */
 .btn-primary {
   background-color: #2563eb;
   color: #fff;
@@ -512,7 +496,6 @@ button:disabled {
   margin-top: 8px;
 }
 
-/* Single chip style (single declaration) */
 .chip {
   display: inline-flex;
   align-items: center;
@@ -547,11 +530,10 @@ button:disabled {
   flex-wrap: wrap;
 }
 
-/* Result list item spacing (applies to UL inside this component) */
 ul { padding-left: 1rem; }
 ul li { margin-bottom: 1rem; }
 
-/* Error / loading visual hints (scoped) */
+/* Error / loading */
 .loading {
   text-align: center;
   font-size: 1.1rem;

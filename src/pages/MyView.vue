@@ -301,7 +301,7 @@ watch([fuelKey, radiusKm, whitelist, blacklist, sortBy], () => {
   =============================== */
 body {
   font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
-  background-color: #DCDCDC; /* NEUTRO BASE (Más profundo) */
+  background-color: #DCDCDC; /* NEUTRO BASE */
   margin: 0;
   color: #1a1a1a;
 }
@@ -322,18 +322,18 @@ body {
   width: fit-content; 
   border-radius: 1.5rem;
   font-size: 2.2rem;
-  color: #2D6CDF; /* AZUL PRINCIPAL (Refinado) */
+  color: #2D6CDF; /* AZUL PRINCIPAL*/
   text-align: center;
   /* Sombra de relieve fuerte */
   box-shadow: 
-    8px 8px 16px #A3A3A3, /* Sombra Oscura (Refinada) */
-    -8px -8px 16px #F0F0F0; /* Sombra Clara (Refinada) */
+    8px 8px 16px #A3A3A3, /* Sombra Oscura */
+    -8px -8px 16px #F0F0F0; /* Sombra Clara */
   /* Sombra de texto suave */
   text-shadow: 1px 1px 1px #A3A3A3;
 }
 
 h2, h3, h4 {
-  color: #F85A3E; /* NARANJA SECUNDARIO (Refinado) */
+  color: #F85A3E; /* NARANJA SECUNDARIO*/
 }
 
 /* ===============================
@@ -371,7 +371,7 @@ h2, h3, h4 {
   font-size: 1.2rem;
   font-weight: 600;
   padding: 2rem;
-  color: #F85A3E; /* CAMBIO: NARANJA SECUNDARIO (Antes morado) */
+  color: #F85A3E; /* CAMBIO: NARANJA SECUNDARIO */
 }
 
 .error {
@@ -383,12 +383,12 @@ h2, h3, h4 {
 }
 
 /* ===============================
-  BLOQUE 3: SECCIÓN (TARJETA NEUMÓRFICA)
+  BLOQUE 3: SECCIÓN
   =============================== */
 .section {
-  background-color: #C7C7C7; /* NEUTRO SECCIÓN (Más profundo) */
+  background-color: #C7C7C7; /* NEUTRO SECCIÓN*/
   border-radius: 2rem;
-  overflow: hidden; /* Asegura que el h2 respete los bordes */
+  overflow: hidden; 
   padding: 0 0 1.5rem 0;
   margin-bottom: 1.5rem; 
   margin-top: 0;
@@ -476,7 +476,7 @@ h2, h3, h4 {
   flex-grow: 1; 
 }
 
-/* CORRECCIÓN: Limitar el ancho del select de marca */
+/* Limitar el ancho del select de marca */
 .mark-select-row select {
     max-width: 350px; 
 }
@@ -489,7 +489,7 @@ h2, h3, h4 {
               0 0 5px #2D6CDF; /* AZUL PRINCIPAL */
 }
 
-/* Estilo visual del SELECTOR */
+/* Estilo visual del SELECT */
 .section select {
   -webkit-appearance: none;
   -moz-appearance: none;
@@ -522,7 +522,7 @@ h2, h3, h4 {
 }
 /* Botón secundario (Naranja) */
 .btn-secondary {
-  background-color: #F85A3E; /* CAMBIO: NARANJA SECUNDARIO */
+  background-color: #F85A3E; /* NARANJA SECUNDARIO */
   color: white;
 }
 
@@ -570,7 +570,7 @@ h2, h3, h4 {
 }
 
 .lists-section h3 {
-  color: #F85A3E; /* CAMBIO: NARANJA SECUNDARIO (Antes #1a1a1a) */
+  color: #F85A3E; /* NARANJA SECUNDARIO */
   text-align: center;
   margin-bottom: 0.75rem;
   text-shadow: none;
@@ -650,7 +650,7 @@ h2, h3, h4 {
     background-color: #C7C7C7; /* NEUTRO SECCIÓN */
     border-radius: 1.5rem;
     padding: 1rem;
-    /* Efecto de Hundimiento (Inward) */
+    /* Efecto de Hundimiento */
     box-shadow: inset 4px 4px 8px #A3A3A3, inset -4px -4px 8px #F0F0F0;
     transition: background-color 0.2s, box-shadow 0.2s; 
     height: 100%; 
@@ -696,7 +696,7 @@ h2, h3, h4 {
 }
 .card-distance {
     font-weight: 600;
-    color: #F85A3E; /* CAMBIO: NARANJA SECUNDARIO (Antes morado) */
+    color: #F85A3E; /* NARANJA SECUNDARIO */
     margin-top: 0.5rem;
     text-align: right;
     font-size: 1rem;
