@@ -9,6 +9,7 @@ const routes = [
   { path: '/profeView', component: ProfeView },
   { path: '/myView', component: MyView },
   { path: '/VuetifyView', component: ModernVuetifyView },
+  { path: '/vue-API-project/', component: Welcome}
 ]
 
 export default createRouter({
