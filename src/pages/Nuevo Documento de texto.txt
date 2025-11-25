@@ -1,0 +1,407 @@
+<script setup>
+import { ref, computed, onMounted, watch } from 'vue'
+import axios from 'axios'
+import '../styles/profe.css' //importamos el estilo css del profesor
+
+
+//Estados principales (user state)
+ 
+
+const all = ref([])         //Se almacena toda la BD
+const loading = ref(false)  //Cargar api
+const error = ref('')       
+
+const lat = ref(40.4168)    //ubicación de Madrid por defecto
+const lon = ref(-3.7038)
+
+const fuelKey = ref('Precio Gasolina 95 E5')
+const radiusKm = ref(100)
+
+const whitelist = ref([])
+const blacklist = ref([])
+const selectedBrand = ref("")
+
+/*UI*/
+const page = ref(1)
+const sortBy = ref('price')
+
+
+
+/*Utilidades MAtemáticas*/
+const toRad = deg => (deg * Math.PI) / 180
+
+const harversineKm = (lat1, lon1, lat2, lon2) => {
+    const R = 6371              //radio de la tierra
+    const dlat = toRad(lat2 - lat1)
+    const dlon = toRad(lon2 - lon1)
+
+    const a =
+        Math.sin(dlat / 2) ** 2 +
+        Math.cos(toRad(lat1)) *
+        Math.cos(toRad(lat2)) *
+        Math.sin(dlon / 2) ** 2
+
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
+
+    return R*c
+}
+
+/*combustibles*/
+const FUEL_FIELDS = [
+    { key: "Precio Gasolina 95 E5", label: "Gasolina 95 E5" },
+    { key: "Precio Gasolina 95 E10", label: "Gasolina 95 E10" },
+    { key: "Precio Gasolina 98 E5", label: "Gasolina 98 E5" },
+    { key: "Precio Gasolina 98 E10", label: "Gasolina 98 E10" },
+    { key: "Precio Gasoleo A", label: "Gasoleo A" },
+    { key: "Precio Gasoleo B", label: "Gasoleo B" },
+    { key: "Precio Gasoleo Premium", label: "Gasoleo Premium" },
+    { key: "Precio GLP", label: "GLP" },
+    { key: "Precio GNC", label: "GNC" },
+    { key: "Precio GNL", label: "GNL" },
+    { key: "Precio Hidrogeno", label: "Hidrogeno" },
+]
+
+/* Heuristica de abierto*/
+function isOpenNow(horario) {
+    if (!horario) return null
+    const h = horario.toUpperCase()
+
+    // Caso fácil: 24H
+    if (h.includes("24H")) return true
+
+    try {
+        const now = new Date()
+        const day = now.getDay() // 0 = domingo
+        const timeStr = now.toTimeString().slice(0, 5)
+
+        const blocks = h.split(/;|\n|\|/).map(b => b.trim())
+
+        const dayMap = { L: 1, M: 2, X: 3, J: 4, V: 5, S: 6, D: 0 }
+
+        for (const b of blocks) {
+            // Formato tipo: L-D: 06:00-22:00
+            const m = b.match(
+                /([LMXJVSD])(?:-([LMXJVSD]))?\s*:\s*(\d{2}:\d{2})\s*-\s*(\d{2}:\d{2})/
+            )
+            if (!m) continue
+
+            const start = dayMap[m[1]]
+            const end = dayMap[m[2] || m[1]]
+
+            const from = m[3]
+            const to = m[4]
+
+            const inDayRange =
+                start <= end
+                    ? day >= start && day <= end
+                    : day >= start || day <= end
+
+            if (!inDayRange) continue
+
+            if (from <= timeStr && timeStr <= to) return true
+        }
+    } catch { /* empty */ }
+
+    return false
+}
+
+
+/*API petition */
+
+async function fetchData() {
+    loading.value = true
+    error.value = ''
+
+    try {
+        const url = "https://sedeaplicaciones.minetur.gob.es/ServiciosRESTCarburantes/PreciosCarburantes/EstacionesTerrestres/"
+        const { data } = await axios.get(url, { responseType: 'json' })
+
+        all.value = data?.ListaEESSPrecio?.map((raw, idx) => ({
+            id: raw["IDEESS"] || idx,
+            brand: raw["Rótulo"]?.trim(),
+            address: `${raw["Direccion"] || ""} ${raw["Localidad" || ""]}`.trim(),
+            municipio: raw["Municipio"] || "",
+            provincia: raw["Provincia"] || "",
+            horario: raw["Horario"] || "",
+            lat: parseFloat((raw["Latitud"] || "").replace(",", ".")),
+            lon: parseFloat((raw["Longitud (WGS84)"] || "").replace(",", ".")),
+            raw
+        })) || []
+
+        // debug: print unique brand list
+        console.log('all.length=', all.value.length)
+        console.log('sample raw keys:', Object.keys(all.value[0]?.raw || {}))
+        console.log('sample raw Rotulo values (first 20):', all.value.slice(0,20).map(x => x.raw?.Rotulo))
+        console.log('brands mapped (first 20):', all.value.slice(0,20).map(x => x.brand))
+        console.log('brandUniverse=', Array.from(new Set(all.value.map(x => x.brand).filter(Boolean))).sort())
+    } catch {
+        error.value = 'No se pudieron obtener los datos.'
+    }
+
+    loading.value = false
+}
+onMounted(fetchData)
+
+/*Computados equivalentes a usaMemo */
+
+const enriched = computed(() =>
+    all.value.map(st => ({
+        ...st,
+        distanceKm: harversineKm(lat.value, lon.value, st.lat, st.lon),
+        price: st.raw?.[fuelKey.value]
+            ? parseFloat(st.raw[fuelKey.value].replace(",", "."))
+            : NaN
+    }))
+)
+
+const brandUniverse = computed(() => {
+    const s = new Set(
+        all.value
+            .map(x => (x.brand ?? x.raw?.Rotulo ?? x.raw?.['Rótulo'])?.toString().trim())
+            .filter(Boolean)
+    )
+    return Array.from(s).sort((a,b) => a.localeCompare(b, undefined, { sensitivity: 'base' }))
+})
+
+const filteredByBrand = computed(() => {
+    if (whitelist.value.length > 0) {
+        const allow = new Set(whitelist.value)
+        return enriched.value.filter(s => allow.has(s.brand))
+    }
+
+    if (blacklist.value.length > 0) {
+        const deny = new Set(blacklist.value)
+        return enriched.value.filter( s => !deny.has(s.brand))
+    }
+
+    return enriched.value
+})
+
+const withinRadius = computed(() =>
+    filteredByBrand.value.filter(s => s.distanceKm <= radiusKm.value)
+)
+
+const sorted = computed(() => {
+    const arr = withinRadius.value.slice()
+
+    if (sortBy.value === 'distance') arr.sort((a, b) => a.distanceKm - b.distanceKm)
+    else if (sortBy.value === 'brand') arr.sort((a, b) => a.brand.localeCompare(b.brand))
+    else arr.sort((a, b) => (a.price || Infinity) - (b.price || Infinity))
+    return arr
+})
+
+const pageSize = 10
+const totalPages = computed(() => Math.max(1, Math.ceil(sorted.value.length / pageSize)))
+const pageItems = computed(() =>
+    sorted.value.slice((page.value -1) * pageSize, page.value * pageSize)
+)
+
+/*Acciones */
+
+function detectMyLocation() {
+    if (!navigator.geolocation) {
+        alert('Geolocalización no disponible.')
+        return
+    }
+
+    navigator.geolocation.getCurrentPosition(
+        pos => {
+            lat.value = pos.coords.latitude
+            lon.value = pos.coords.longitude
+        },
+        err => alert("No se pudo obtener la ubicación: " + err.message),
+        { enableHighAccuracy: true }
+    )
+}
+
+function addToWhiteList() {
+    if (!selectedBrand.value) return
+    if (!whitelist.value.includes(selectedBrand.value)) {
+        whitelist.value.push(selectedBrand.value)
+    }
+
+    // fixed: use .filter on the array
+    blacklist.value = blacklist.value.filter(b => b !== selectedBrand.value)
+}
+
+function addToBlackList() {
+    if (!selectedBrand.value) return
+    if (!blacklist.value.includes(selectedBrand.value)) {
+    blacklist.value.push(selectedBrand.value)
+  }
+  // Si estaba en whitelist, se remueve automáticamente
+  whitelist.value = whitelist.value.filter(b => b !== selectedBrand.value)
+}
+
+function removeFromWhitelist(b) {
+    whitelist.value = whitelist.value.filter(x => x !== b)
+}
+
+function removeFromBlacklist(b) {
+    blacklist.value = blacklist.value.filter( x => x !== b)
+}
+
+watch([sorted], () => {
+  page.value = 1
+})
+
+</script>
+
+
+<template>
+    <!--INICIA TEMPLATE
+    =======================================================================================
+    =======================================================================================
+    =======================================================================================
+    =======================================================================================
+    =======================================================================================
+    =======================================================================================
+    -->
+    <div class="container">
+        <h1 style="text-align:center">Versión básica del profesor (Vue Adapted)</h1>
+        
+        <p>Datos cargados: {{ all.length }}</p>
+
+        <!--Datos básicos rudimentarios-->
+        <div class="section">
+            <h2>Ubicación</h2>
+            <label for="">Latitud:</label>
+            <input type="number" v-model="lat"/>
+            <label for="">Longitud:</label>
+            <input type="number" v-model="lon"/>
+            <button @click="detectMyLocation" style="margin-top:5px; color: orange; background-color: blue; font-weight: bolder;">Usar mi ubicación</button>
+        </div>
+
+        <div class="section">
+            <h2>Combustible</h2>
+            <select v-model="fuelKey">
+                <option v-for="f in FUEL_FIELDS" :key="f.key" :value="f.key">{{ f.label }}</option>
+            </select>
+            <label for="">Radio:</label>
+            <input type="number" v-model="radiusKm">
+        </div>
+
+        <div class="section">
+            <h2>Marcas</h2>
+            <select v-model="selectedBrand">
+                <option value="">- seleccionar marca -</option>
+                <option v-for="b in brandUniverse" :key="b" :value="b">{{ b }}</option>
+            </select>
+
+            <div class="button-row">
+                <button @click="addToWhiteList" class="btn btn-primary">Añadir a lista blanca</button>
+                <button @click="addToBlackList" class="btn btn-secondary">Añadir a lista negra</button>
+            </div>
+
+            <div class="lists-container">
+                <div class="list-section">
+                    <h3>Lista Blanca</h3>
+                    <div class="chips">
+                        <span
+                        v-for="b in whitelist"
+                        :key="'w-'+b"
+                        class="chip chip-green"
+                        @click="removeFromWhitelist(b)"
+                        >
+                            {{ b }} ×
+                        </span>
+                    </div>
+                </div>
+
+                <div class="list-section">
+                    <h3>Lista negra</h3>
+                    <div class="chips">
+                        <span
+                        v-for="b in blacklist"
+                        :key="'b-'+b"
+                        class="chip chip-red"
+                        @click="removeFromBlacklist(b)"
+                        >
+                            {{ b }} ×
+                        </span>
+                    </div>
+                </div>
+              </div>
+        </div>
+
+
+        <div class="section">
+            <h2>Resultados dentro del radio</h2>
+            <h3>Ordenar por</h3>
+            <select v-model="sortBy" class="input">
+                <option value="price">Precio</option>
+                <option value="distance">Cercanía</option>
+                <option value="brand">Marca</option>
+            </select>
+
+            <!-- PAGINACIÓN -->
+            <div class="pagination" style="margin-top: 10px; display: flex; align-items: center; gap: 10px;">
+  
+                <!-- Botón anterior -->
+                <button
+                class="btn-secondary"
+                :disabled="page <= 1"
+                @click="page--"
+                >
+                    Anterior
+                </button>
+
+                <!-- Texto página actual -->
+                <span>Página {{ page }} / {{ totalPages }}</span>
+
+                <!-- Botón siguiente -->
+                <button
+                class="btn-secondary"
+                :disabled="page >= totalPages"
+                @click="page++"
+                >
+                    Siguiente
+                </button>
+
+            </div>
+
+
+            <div v-if="loading">Cargando...</div>
+            <div v-else-if="error">{{ error }}</div>
+            <ul v-else>
+                <li v-for="it in pageItems" :key="it.id" style="margin-bottom: 20px;">
+                    <strong>{{ it.brand }}</strong><br>
+
+                    <!-- Abierto / cerrado -->
+                    <span>
+                        {{
+                        isOpenNow(it.horario) === true 
+                        ? "abierto"
+                        : isOpenNow(it.horario) === false
+                            ? "cerrado"
+                            : "horario desconocido"
+                        }}
+                    </span><br>
+
+                    <!-- Dirección -->
+                    <span>{{ it.direccion }}</span><br>
+
+                    <!-- Horario -->
+                    <span>Horario: {{ it.horario }}</span><br>
+
+                    <!-- Distancia -->
+                    <span>Distancia: {{ it.distanceKm.toFixed(2) }} km</span><br>
+
+                    <!-- Tipo de combustible -->
+                    <span>Combustible: {{ FUEL_FIELDS.find(f => f.key === fuelKey)?.label }}</span><br>
+
+                    <!-- Precio -->
+                    <span>Precio</span><br>
+                    <span>{{ it.raw[fuelKey] }} €</span><br>
+                </li>
+
+            </ul>
+        </div>
+    </div>
+    
+    <footer>
+        <div>
+            <h1>Pagina del profesor</h1>
+        </div>
+    </footer>
+</template>
