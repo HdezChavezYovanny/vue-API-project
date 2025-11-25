@@ -8,7 +8,7 @@ export default defineConfig({
   plugins: [
     vue(),
   ],
-  base: '/vue-API-project',
+  base: '/vue-API-project/',
   resolve: {
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url))
@@ -16,6 +16,6 @@ export default defineConfig({
   },
 
   experimental: {
-    useViteNative: false, // <-- ya no usa Rolldown
+    useViteNative: false, 
   },
 })
